@@ -1,107 +1,89 @@
 #include <iostream>
-#include<cstdio>
-#include<algorithm>
-#include<math.h>
-#include<cstring>
-#include<iomanip>
-#include<stdio.h>
+#include <vector>
+#include <stdlib.h>    
+#include <time.h>       
+#include <climits>	
+#include <ctime>
 
 using namespace std;
+ 
+struct Point
+{
+    int x, y;
+};
+ 
+int angle(Point p, Point q, Point r)
+{
+    int val = (q.y - p.y) * (r.x - q.x) -
+              (q.x - p.x) * (r.y - q.y);
+ 
+    if (val == 0) return 0;  
+    return (val > 0)? 1: 2; 
+}
 
-     // Define Infinite (Using INT_MAX caused overflow problems)
-
-#define INF 10000
-
- struct Point
-
-    {
-        int x;
-        int y;
-
-    };
-
-    // To find orientation of ordered triplet (p, q, r).
-    // The function returns following values
-    // 0 --> p, q and r are colinear
-    // 1 --> Clockwise
-    // 2 --> Counterclockwise
-
-    int orientation(Point p, Point q, Point r)
-
-    {
-
-        int val = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
-       if (val == 0)
-        return 0; // colinear
-       return (val > 0) ? 1 : 2; // clock or counterclock wise
-    }
-
-
-
-    // Prints convex hull of a set of n points.
-
-    void convexHull(Point points[], int n)
-
-    {
-     // There must be at least 3 points
-
-        if (n < 3)
-         return;
-
-    // Initialize Result
-
-        int next[n];
-    for (int i = 0; i < n; i++)
-      next[i] = -1;
-
-     // Find the leftmost point
-      int l = 0;
+void convexHull(Point points[], int n)
+{
+    if (n < 3) return;
+ 
+    vector<Point> hull;
+ 
+    int l = 0;
     for (int i = 1; i < n; i++)
         if (points[i].x < points[l].x)
-          l = i;
-
-       // Start from leftmost point, keep moving counterclockwise
-       // until reach the start point again
-        int p = l, q;
-
-        do {
-
-            // Search for a point 'q' such that orientation(p, i, q) is
-          // counterclockwise for all points 'i'
-
-            q = (p + 1) % n;
-          for (int i = 0; i < n; i++)
-            if (orientation(points[p], points[i], points[q]) == 2)
-               q = i;
-             next[p] = q; // Add q to result as a next point of p
-               p = q; // Set p as q for next iteration
-
-        } while (p != l);
-
-
-
-        // Print Result
-
-        for (int i = 0; i < n; i++)
-
-        {
-           if (next[i] != -1)
-          cout << "(" << points[i].x << ", " << points[i].y << ")\n";
-
-        }
-
-    }
-
-     // Driver program to test above functions
-
-    int main()
-
+            l = i;
+ 
+    int p = l, q;
+    do
     {
-        Point points[] = { { 0, 3 }, { 2, 2 }, { 1, 1 }, { 2, 1 }, { 3, 0 },
-                        { 0, 0 }, { 3, 3 } };
+       
+        hull.push_back(points[p]);
+ 
+        q = (p+1)%n;
+        for (int i = 0; i < n; i++)
+        {
+           
+           if (angle(points[p], points[i], points[q]) == 2)
+               q = i;
+        }
+ 
+        p = q;
+ 
+    } while (p != l);
+ 
+    for (int i = 0; i < hull.size(); i++)
+        cout << "(" << hull[i].x << ", "
+              << hull[i].y << ")\n";
+}
 
-        cout << "The points in the convex hull are: ";
-        int n = sizeof(points) / sizeof(points[0]);
-            convexHull(points, n);
-         return 0;
+bool checkEqual(Point points [],int x,int y,int count){
+	bool check = false;
+	for(int i=0;i<count;i++){
+		if(points[i].x==x && points[i].y==y)
+			check = true;
+	}
+	return check;
+}
+ 
+int main()
+{
+	int n;
+  	cout<<"Enter no. of pnts:\n";
+  	cin>>n;
+  	int count =0;
+    Point points[n];
+    for(int i=0;i<n;i++){
+    	int x = rand()%n;
+    	int y = rand()%n;
+    	while(checkEqual(points,x,y,count)){
+    		x = rand()%n;
+    		y = rand()%n;
+    	}
+    	points[i].x = x;
+    	points[i].y = y;
+    	count++;
     }
+    clock_t tStart = clock();
+    convexHull(points, n);
+    cout<<"Time taken: "<<(double)(clock() - tStart)/CLOCKS_PER_SEC<<endl;
+    return 0;
+}
