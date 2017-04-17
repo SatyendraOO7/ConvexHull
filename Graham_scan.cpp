@@ -1,185 +1,139 @@
-#include <iostream>
-#include <stack>
-#include <stdlib.h>
-#include<algorithm>
-#include<math.h>
-#include<cstring>
-#include<iomanip>
-#include<stdio.h>
-
+#include<bits/stdc++.h>
 using namespace std;
 
-struct Point
-    {
-      int x;
-      int y;
+#define MP         make_pair
+#define PB         push_back
+#define LL         long long
+#define MAX        1000005
+#define mod        1000000007
+#define debug(a)   cout<<a<<"\n"
+#define mx(a,b,c)  max(a,max(b,c))
+#define mn(a,b,c)  min(a,min(b,c))
+#define pred(a)    printf("%0.6lf",a);
+#define forp(i,x,b) for(int i=x;i<b;i++)
+#define fast()     ios_base::sync_with_stdio(0)
 
-    };
+const double eps=1e-9;
+const double pi =acos(-1);
+struct point{
+	int x;
+	int y;
+};
+point p0;
+point p[100005];
+int n;
+LL t1,t2,t3,t4,t5;
+bool c;
+LL lcm(LL x, LL y) { return x*1LL*y/__gcd(x, y);}
+LL int modpow(LL a,LL x){
+	int r=1;
+	while(x>0)
+    if (x&1){ r=(r*a)%mod; --x;}
+    else {a=(a*a)%mod;x>>=1;}
+	return r%mod ;
+}
+point nextToTop(stack<point> &S)
+{
+    point p = S.top();
+    S.pop();
+    point res = S.top();
+    S.push(p);
+    return res;
+}
+int dis(point p1, point p2)
+{
+    return (p1.x - p2.x)*(p1.x - p2.x) +
+          (p1.y - p2.y)*(p1.y - p2.y);
+}
 
-   Point p0;
-   // A utility function to find next to top in a stack
+int angle(point p, point q, point r)
+{
+    int val = (q.y - p.y) * (r.x - q.x) -
+              (q.x - p.x) * (r.y - q.y);
+  if(val==0)return val;
+    return (val > 0)? 1:2;
+}
 
-    Point nextToTop(stack<Point> &S)
-  {
+int compr(const void *p11, const void *p12){
+	point *p1=(point *) p11;
+	point *p2=(point *) p12;
+	int x=angle(p0,*p1,*p2);
+	if(x==0)
+	{
+		 return (dis(p0, *p2) >= dis(p0, *p1))? -1 : 1;
+	}
+	 return (x== 2)? -1: 1;
+}
+void Graham_scan()
+{
+   int y_lowest = p[0].y, min = 0;
+   forp(i,1,n)
+   {
+     int y = p[i].y;
+     if ((y < y_lowest) || (y_lowest == y &&
+         p[i].x < p[min].x))
+        y_lowest = p[i].y, min = i;
+   }
+   swap(p[0], p[min]);
+   p0 = p[0];
+   qsort(&p[1], n-1, sizeof(point), compr);
+   int m = 1;
+  forp(i,1,n)
+   {
+       while (i<n-1 && angle(p0, p[i], p[i+1])== 0)
+          i++;
+       p[m] = p[i];
+       m++;
+   }
 
-        Point p = S.top();
-        S.pop();
+   if (m < 3) return;
+   stack<point> S;
+   S.push(p[0]);
+   S.push(p[1]);
+   S.push(p[2]);
+   for (int i = 3; i < m; i++)
+   {
+      while (angle(nextToTop(S), S.top(), p[i]) != 2)
+         S.pop();
+      S.push(p[i]);
+   }
+   cout<<"The convex hull in counter-clockwise fashion: \n";
+   while (!S.empty())
+   {
+       point p = S.top();
+       cout << "(" << p.x << ", " << p.y <<")" <<"\n";
+       S.pop();
+   }
+}
 
-        Point res = S.top();
-        S.push(p);
+bool checkEqual(point points [],int x,int y,int count){
+  bool check = false;
+  for(int i=0;i<count;i++){
+    if(points[i].x==x && points[i].y==y)
+      check = true;
+  }
+  return check;
+}
 
-        return res;
-
+int main()
+{
+    t1=1000000007;
+  	cout<<"Enter the no. of points:\n";
+  	cin>>n;
+    int count =0;
+  	//cout<<"Enter the points in format of Xi and Yi:\n";
+  	forp(i,0,n){
+      int x = rand()%n;
+      int y = rand()%n;
+      while(checkEqual(p,x,y,count)){
+        x = rand()%n;
+        y = rand()%n;
+      }
+      p[i].x = x;
+      p[i].y = y;
+      count++;
     }
-
-     // A utility function to swap two points
-
-    int swap(Point &p1, Point &p2)
-
-    {
-
-        Point temp = p1;
-        p1 = p2;
-        p2 = temp;
-
-    }
-
-     // A utility function to return square of distance between p1 and p2
-
-    int dist(Point p1, Point p2)
-
-    {
-    return (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y);
-    }
-
-
-     int orientation(Point p, Point q, Point r)
-    {
-      int val = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
-      if (val == 0)
-       return 0; // colinear
-       return (val > 0) ? 1 : 2; // clock or counterclock wise
-     }
-
-     // A function used by library function qsort() to sort an array of
-     // points with respect to the first point
-
-    int compare(const void *vp1, const void *vp2)
-
-    {
-         Point *p1 = (Point *) vp1;
-         Point *p2 = (Point *) vp2;
-
-        // Find orientation
-
-        int o = orientation(p0, *p1, *p2);
-
-        if (o == 0)
-          return (dist(p0, *p2) >= dist(p0, *p1)) ? -1 : 1;
-       return (o == 2) ? -1 : 1;
-
-    }
-
-
-    // Prints convex hull of a set of n points.
-
-    void convexHull(Point points[], int n)
-
-    {
-      // Find the bottommost point
-
-        int ymin = points[0].y, min = 0;
-
-        for (int i = 1; i < n; i++)
-
-        {
-
-            int y = points[i].y;
-
-          // Pick the bottom-most or chose the left most point in case of tie
-            if ((y < ymin) || (ymin == y && points[i].x < points[min].x))
-              ymin = points[i].y, min = i;
-        }
-
-
-
-        // Place the bottom-most point at first position
-
-        swap(points[0], points[min]);
-
-
-
-        // Sort n-1 points with respect to the first point.  A point p1 comes
-       // before p2 in sorted ouput if p2 has larger polar angle (in
-      // counterclockwise direction) than p1
-
-        p0 = points[0];
-
-        qsort(&points[1], n - 1, sizeof(Point), compare);
-
-
-
-        // Create an empty stack and push first three points to it.
-
-        stack<Point> S;
-
-        S.push(points[0]);
-
-        S.push(points[1]);
-
-        S.push(points[2]);
-
-
-
-        // Process remaining n-3 points
-
-        for (int i = 3; i < n; i++)
-
-        {
-
-            // Keep removing top while the angle formed by points next-to-top,
-            // top, and points[i] makes a non-left turn
-
-            while (orientation(nextToTop(S), S.top(), points[i]) != 2)
-
-                S.pop();
-
-            S.push(points[i]);
-
-        }
-
-
-
-        // Now stack has the output points, print contents of stack
-
-        while (!S.empty())
-
-        {
-
-            Point p = S.top();
-         cout << "(" << p.x << ", " << p.y << ")" << endl;
-            S.pop();
-
-        }
-
-    }
-
-
-
-    // Driver program to test above functions
-
-    int main()
-
-    {
-        Point points[] = { { 0, 3 }, { 1, 1 }, { 2, 2 }, { 4, 4 }, { 0, 0 },
-                { 1, 2 }, { 3, 1 }, { 3, 3 } };
-
-        int n = sizeof(points) / sizeof(points[0]);
-
-        cout << "The points in the convex hull are: \n";
-
-        convexHull(points, n);
-
-        return 0;
-
-    }
+  	clock_t tStart = clock();
+    Graham_scan();
+    cout<<"Time taken: "<<(double)(clock() - tStart)/CLOCKS_PER_SEC<<endl;
+}
